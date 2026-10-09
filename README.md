@@ -10,9 +10,10 @@ J'ai une station météo Netatmo à la maison, et j'avais envie de m'approprier 
 
 Elle récupère les données de la station via l'API Netatmo et affiche :
 - les mesures actuelles de l'intérieur, du jardin et du pluviomètre ;
+- la température ressentie (humidex) quand il fait chaud ;
 - l'historique des 48 dernières heures, avec une zone de confort sur les graphiques intérieurs ;
-- des alertes quand une valeur sort des seuils que j'ai fixés ;
-- l'état de la station et des batteries.
+- des alertes avec un conseil adapté : ouvrir ou garder fermé selon l'écart de température entre l'intérieur et l'extérieur ;
+- l'état de la station et des batteries, avec un bouton pour actualiser les données.
 
 Python, Streamlit, Pandas, Plotly. Hébergée sur Streamlit Community Cloud.
 
@@ -29,6 +30,8 @@ La première version fonctionnait sur mon PC. La mettre en ligne m'a obligé à 
 **Le décalage horaire.** Le serveur tourne en heure UTC. Sans conversion explicite, l'heure de la dernière mesure s'affichait avec 2 heures de retard.
 
 J'ai aussi regroupé les huit blocs de graphiques, quasiment identiques, dans une seule fonction, après avoir perdu du temps sur un graphique qui en affichait un autre à cause d'une erreur d'indentation.
+
+**Le conseil à contresens.** Un soir, il faisait 25 °C dans la maison et 21 °C dehors, et mon alerte me conseillait de fermer les volets. Le conseil dépend maintenant de l'écart entre l'intérieur et l'extérieur.
 
 ## Lancer le projet en local
 

@@ -9,6 +9,7 @@ import pandas as pd
 import requests
 import time
 import plotly.express as px
+import math
 
 # Chargement des variables d'environnement à partir du fichier .toml
 
@@ -103,6 +104,7 @@ if not module_pluvio or "dashboard_data" not in module_pluvio:
 jardin = module_jardin["dashboard_data"]
 pluvio = module_pluvio["dashboard_data"]
 
+
 # Extraction des données du module Salon
 temperature_int = salon["Temperature"]
 humidite_int = salon["Humidity"]
@@ -130,6 +132,7 @@ pluie = pluvio.get("Rain", 0)
 total_pluie = pluvio.get("sum_rain_24", 0)
 pluie_1h = pluvio.get("sum_rain_1", 0)
 batterie_pluvio = module_pluvio["battery_percent"]
+
 
 # Fonctions des tendances et des graphiques 
 def afficher_tendance_temperature(tendance):
@@ -165,6 +168,16 @@ def afficher_graph(df, y, titre, axe_y, type_graph="line", zone=None):
     fig.update_xaxes(tickformat="%d/%m %Hh")
     st.plotly_chart(fig, width="stretch")
 
+def calcul_humidex(temperature, humidite):
+    # Point de rosée (formule de Magnus)
+    a, b = 17.27, 237.7
+    alpha = (a * temperature) / (b + temperature) + math.log(humidite / 100)
+    point_rosee = (b * alpha) / (a - alpha)
+
+    # Humidex
+    e = 6.11 * math.exp(5417.7530 * (1 / 273.16 - 1 / (273.15 + point_rosee)))
+    return round(temperature + 0.5555 * (e - 10), 1)
+
 # =====================================
 # Sidebar
 st.sidebar.title("ℹ️ Informations Station")
@@ -180,7 +193,13 @@ date_mesure.strftime("%d/%m/%Y à %H:%M")
 )
 st.sidebar.write(f"Fuseau horaire : {timezone}")
 
+if st.sidebar.button("**🔄 Actualiser les données**", width="stretch"):
+    get_station_data.clear()
+    get_historique.clear()
+    st.rerun()
+
 st.sidebar.divider()
+
 
 # Calcul du nombre d'alertes
 nb_alertes = 0
@@ -269,21 +288,44 @@ if nb_alertes > 0:
                 st.warning("⚠️ Pensez à aérer")
 
         with col2:
+            plus_frais_dehors = temperature_jardin < temperature_int - 2
+            plus_doux_dehors = temperature_jardin > temperature_int + 2
+
             if temperature_int > 28:
-                st.error(
-                    "🥵 **Intérieur trop chaud**  \n"
-                    "*🚩 Ventilation ou climatisation à activer*"
-                )
+                if plus_frais_dehors:
+                    st.error(
+                        "🥵 **Intérieur trop chaud**  \n"
+                        "*🌬️ Ouvrez les fenêtres, il fait plus frais dehors*"
+                        )
+                else:
+                    st.error(
+                        "🥵 **Intérieur trop chaud**  \n"
+                        "*🚩 Fermez fenêtres et volets, ventilez ou climatisez*"
+                        )
 
             elif temperature_int > 25:
-                st.warning(
-                    "☀️ **Intérieur chaud**  \n"
-                    "*💭 Pensez à baisser les volets*"
-                )
+                if plus_frais_dehors:
+                    st.warning(
+                        "☀️ **Intérieur chaud**  \n"
+                        "*🌬️ Ouvrez, il fait plus frais dehors*"
+                    )
+                else:
+                    st.warning(
+                        "☀️ **Intérieur chaud**  \n"
+                        "*💭 Gardez fenêtres et volets fermés*"
+                    )
 
             elif temperature_int < 18:
-                st.warning("🥶 **Intérieur frais**")
-
+                if plus_doux_dehors:
+                    st.warning(
+                        "🥶 **Intérieur frais**  \n"
+                        "*🌤️ Ouvrez un moment, il fait plus doux dehors*"
+                    )
+                else:
+                    st.warning(
+                        "🥶 **Intérieur frais**  \n"
+                        "*💭 Fermez les fenêtres et pensez au chauffage*"
+                    )
         with col3:
             if humidite_int > 70:
                 st.warning("💧 **Humidité intérieure élevée**")
@@ -401,6 +443,9 @@ with col1:
     st.caption(
         f"🔵 {temperature_min_jardin} °C | 🔴 {temperature_max_jardin} °C"
     )
+    if temperature_jardin > 20:
+        ressenti = calcul_humidex(temperature_jardin, humidite_jardin)
+        st.caption(f"🥵 Ressenti : {ressenti} °C")
 
 with col2:
     st.metric(label="Humidité Jardin", value=f"💧{humidite_jardin} %")
