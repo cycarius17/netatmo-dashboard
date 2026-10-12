@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Dashboard Météo Alice",
+    page_title="Dashboard Météo",
     layout="wide",
     page_icon="🌈"
 )
@@ -11,6 +11,10 @@ import time
 import plotly.express as px
 import math
 
+ACCENT = "#22e7a1"
+TEXTE_SECONDAIRE = "#aab4c0"
+GRILLE = "#293443"
+
 # Chargement des variables d'environnement à partir du fichier .toml
 
 CLIENT_ID = st.secrets["NETATMO_CLIENT_ID"]
@@ -18,7 +22,7 @@ CLIENT_SECRET = st.secrets["NETATMO_CLIENT_SECRET"]
 REFRESH_TOKEN = st.secrets["NETATMO_REFRESH_TOKEN"]
 
 # Titre de l'application
-st.title('🌈 DashBoard Météo Alice')
+st.title('🌈 DashBoard Météo')
 st.divider()
 # Récupération des données de l'API Netatmo
 
@@ -156,16 +160,24 @@ def afficher_graph(df, y, titre, axe_y, type_graph="line", zone=None):
     if df is None:
         return
     trace = px.bar if type_graph == "bar" else px.line
-    fig = trace(df, x="date", y=y, title=titre)
+    fig = trace(df, x="date", y=y, title=titre, color_discrete_sequence=[ACCENT])
 
-    # Zone de confort
     if zone:
         fig.add_hrect(
             y0=zone[0], y1=zone[1],
-            fillcolor="lightgreen", opacity=0.2, line_width=0
+            fillcolor=ACCENT, opacity=0.1, line_width=0
         )
-    fig.update_layout(xaxis_title=None, yaxis_title=axe_y, hovermode="x unified")
-    fig.update_xaxes(tickformat="%d/%m %Hh")
+
+    fig.update_layout(
+        xaxis_title=None,
+        yaxis_title=axe_y,
+        hovermode="x unified",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color=TEXTE_SECONDAIRE,
+    )
+    fig.update_xaxes(gridcolor=GRILLE)
+    fig.update_yaxes(gridcolor=GRILLE)
     st.plotly_chart(fig, width="stretch")
 
 def calcul_humidex(temperature, humidite):
@@ -287,21 +299,21 @@ if nb_alertes > 0:
             elif co2 > 800:
                 st.warning("⚠️ Pensez à aérer")
 
-        with col2:
-            plus_frais_dehors = temperature_jardin < temperature_int - 2
-            plus_doux_dehors = temperature_jardin > temperature_int + 2
+                with col2:
+                    plus_frais_dehors = temperature_jardin < temperature_int - 2
+                    plus_doux_dehors = temperature_jardin > temperature_int + 2
 
             if temperature_int > 28:
                 if plus_frais_dehors:
                     st.error(
                         "🥵 **Intérieur trop chaud**  \n"
                         "*🌬️ Ouvrez les fenêtres, il fait plus frais dehors*"
-                        )
+                    )
                 else:
                     st.error(
                         "🥵 **Intérieur trop chaud**  \n"
-                        "*🚩 Fermez fenêtres et volets, ventilez ou climatisez*"
-                        )
+                        "*❄️ Fermez tout et allumez la clim*"
+                    )
 
             elif temperature_int > 25:
                 if plus_frais_dehors:
@@ -312,7 +324,7 @@ if nb_alertes > 0:
                 else:
                     st.warning(
                         "☀️ **Intérieur chaud**  \n"
-                        "*💭 Gardez fenêtres et volets fermés*"
+                        "*💭 Gardez fenêtres et volets fermés, la clim si besoin*"
                     )
 
             elif temperature_int < 18:
@@ -321,14 +333,22 @@ if nb_alertes > 0:
                         "🥶 **Intérieur frais**  \n"
                         "*🌤️ Ouvrez un moment, il fait plus doux dehors*"
                     )
+                elif temperature_jardin >= 10:
+                    st.warning(
+                        "🥶 **Intérieur frais**  \n"
+                        "*🔥 La clim en mode chauffage suffira pour un coup de chaud*"
+                    )
                 else:
                     st.warning(
                         "🥶 **Intérieur frais**  \n"
-                        "*💭 Fermez les fenêtres et pensez au chauffage*"
+                        "*💭 Fermez les fenêtres et allumez le chauffage*"
                     )
         with col3:
             if humidite_int > 70:
-                st.warning("💧 **Humidité intérieure élevée**")
+                st.warning(
+                    "💧 **Humidité intérieure élevée**  \n"
+                    "*💭 Lancez la clim en mode déshumidification*"
+                )
 
             elif humidite_int < 40:
                 st.warning("🏜️ **Air intérieur trop sec**")

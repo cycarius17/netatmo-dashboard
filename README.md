@@ -12,7 +12,7 @@ Elle récupère les données de la station via l'API Netatmo et affiche :
 - les mesures actuelles de l'intérieur, du jardin et du pluviomètre ;
 - la température ressentie (humidex) quand il fait chaud ;
 - l'historique des 48 dernières heures, avec une zone de confort sur les graphiques intérieurs ;
-- des alertes avec un conseil adapté : ouvrir ou garder fermé selon l'écart de température entre l'intérieur et l'extérieur ;
+- des alertes avec un conseil adapté à la situation et à l'équipement de la maison : ouvrir quand il fait plus frais ou plus doux dehors, sinon clim, chauffage ou déshumidification selon le cas ;
 - l'état de la station et des batteries, avec un bouton pour actualiser les données.
 
 Python, Streamlit, Pandas, Plotly. Hébergée sur Streamlit Community Cloud.
@@ -31,7 +31,7 @@ La première version fonctionnait sur mon PC. La mettre en ligne m'a obligé à 
 
 J'ai aussi regroupé les huit blocs de graphiques, quasiment identiques, dans une seule fonction, après avoir perdu du temps sur un graphique qui en affichait un autre à cause d'une erreur d'indentation.
 
-**Le conseil à contresens.** Un soir, il faisait 25 °C dans la maison et 21 °C dehors, et mon alerte me conseillait de fermer les volets. Le conseil dépend maintenant de l'écart entre l'intérieur et l'extérieur.
+**Le conseil à contresens.** Un soir, il faisait 25 °C dans la maison et 21 °C dehors, et mon alerte me conseillait de fermer les volets. Le conseil dépend maintenant de l'écart entre l'intérieur et l'extérieur. Depuis l'installation d'une clim réversible, il distingue aussi l'intersaison, où la clim suffit à réchauffer, du vrai froid, où c'est le chauffage qui prend le relais.
 
 ## Lancer le projet en local
 
@@ -59,4 +59,6 @@ Puis `streamlit run app.py`.
 
 ## Pour la suite
 
-J'aimerais ajouter une carte de chaleur jour × heure sur une semaine, pour voir les habitudes de la maison : à quelle heure le CO₂ monte, quand le salon refroidit. Et ajouter un anémomètre pour avoir un peu plus de données !
+- une carte de chaleur jour × heure sur une semaine, pour voir les habitudes de la maison : à quelle heure le CO₂ monte, quand le salon refroidit ;
+- un anémomètre, pour ajouter le vent et la température ressentie par temps froid ;
+- les horaires de marée, ma première source de données en dehors de la station.
