@@ -290,7 +290,7 @@ if nb_alertes > 0:
 
         st.header("🚨 Alertes", text_alignment="center")
 
-                col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
             if co2 > 1000:
