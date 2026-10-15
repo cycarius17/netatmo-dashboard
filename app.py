@@ -137,6 +137,9 @@ total_pluie = pluvio.get("sum_rain_24", 0)
 pluie_1h = pluvio.get("sum_rain_1", 0)
 batterie_pluvio = module_pluvio["battery_percent"]
 
+# Écart intérieur / extérieur (utilisé par les alertes)
+plus_frais_dehors = temperature_jardin < temperature_int - 2
+plus_doux_dehors = temperature_jardin > temperature_int + 2
 
 # Fonctions des tendances et des graphiques 
 def afficher_tendance_temperature(tendance):
@@ -287,7 +290,7 @@ if nb_alertes > 0:
 
         st.header("🚨 Alertes", text_alignment="center")
 
-        col1, col2, col3 = st.columns(3)
+                col1, col2, col3 = st.columns(3)
 
         with col1:
             if co2 > 1000:
@@ -299,10 +302,7 @@ if nb_alertes > 0:
             elif co2 > 800:
                 st.warning("⚠️ Pensez à aérer")
 
-                with col2:
-                    plus_frais_dehors = temperature_jardin < temperature_int - 2
-                    plus_doux_dehors = temperature_jardin > temperature_int + 2
-
+        with col2:
             if temperature_int > 28:
                 if plus_frais_dehors:
                     st.error(
@@ -343,6 +343,7 @@ if nb_alertes > 0:
                         "🥶 **Intérieur frais**  \n"
                         "*💭 Fermez les fenêtres et allumez le chauffage*"
                     )
+
         with col3:
             if humidite_int > 70:
                 st.warning(
